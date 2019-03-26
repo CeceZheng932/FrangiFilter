@@ -12,8 +12,10 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
 def read_img(path):
-	data = sitk.ReadImage(path,sitk.sitkFloat32)
-	data = sitk.GetArrayFromImage(data)
+        reader = sitk.ImageFileReader()
+        reader.SetImageIO("NiftiImageIO")
+        reader.SetFileName(path)
+        data = reader.Execute()
 	return data
 
 
@@ -25,8 +27,11 @@ def img_show(img):
 
 
 def img_store(img,outpath):
-	out = sitk.GetImageFromArray(img)
-	sitk.WriteImage(out,outpath)
+	#out = sitk.GetImageFromArray(img)
+	writer = sitk.ImageFileWriter()
+	writer.SetFileName(outpath)
+	writer.Execute(img)
+	#sitk.WriteImage(out,outpath)
 
 
 def binary_mask(img):
@@ -52,30 +57,29 @@ def biasFieldCorrection(img,shrink):
 
 #delete labeled voxel(skull strip)
 '''
-path1 = '.nii.gz'#your file
+path1 = ''#your file
 img1 = read_img(path1)
-path2 = '.nii.gz'#your label
+path2 = ''#your label
 img2 = read_img(path2)
-outpath = 'MR00008133_skullstriped.nii.gz'
-for i in range(img1.shape[0]):
-	for j in range(img1.shape[1]):
-		for k in range(img1.shape[2]):
-			if img2[i,j,k] > 0:
-				img1[i,j,k]=0
-img_show(img1)
+img2 = sitk.GetArrayFromImage(img2)
+outpath = ''
+isize = img1.GetSize()
+for i in range(isize[0]):
+	for j in range(isize[1]):
+		for k in range(isize[2]):
+			if img2[k,j,i] == 0:
+				img1.SetPixel(i,j,k,0)
+#img_show(img1)
 img_store(img1,outpath)
 '''
 
 
 #biasFieldCorrection
 
-outpath = '.nii.gz'#corrected file
-path = '.nii.gz'#skull striped file
-#img = read_img(path)
-#print(np.shape(img))
+path = ''#corrected file
+outpath = ''#skull striped file
 shrink = 1
-output = biasFieldCorrection(path,shrink)
-output = sitk.GetArrayFromImage(output)
-img_show(output)
-img_store(output,outpath)
+img = biasFieldCorrection(path,shrink)		
+#img_show(output)
+img_store(img,outpath)
 
